@@ -65,3 +65,29 @@ module.exports.getTaskById = async (req, res) => {
         res.json('Không tìm thấy!');
     }
 };
+
+// [PATCH] /api/v1/task/change-status/:idTask
+module.exports.changeStatusTask = async (req, res) => {
+    try {
+        const idTask = req.params.idTask;
+
+        await taskModel.updateOne(
+            {
+                _id: idTask,
+            },
+            {
+                status: req.body.status,
+            }
+        );
+
+        res.json({
+            code: 200,
+            message: 'Success',
+        });
+    } catch (error) {
+        res.json({
+            code: 404,
+            message: 'Not Found!',
+        });
+    }
+};

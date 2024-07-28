@@ -7,4 +7,6 @@ Router.route('/').get(taskController.getAllTasks);
 
 Router.route('/detail/:idTask').get(taskController.getTaskById);
 
+Router.route('/change-status/:idTask').patch(taskController.changeStatusTask);
+
 module.exports = Router;
