@@ -15,4 +15,6 @@ Router.route('/create').post(taskController.createTask);
 
 Router.route('/edit/:idTask').patch(taskController.editTask);
 
+Router.route('/delete/:idTask').delete(taskController.deleteTask);
+
 module.exports = Router;

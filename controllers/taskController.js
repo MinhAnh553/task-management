@@ -97,26 +97,47 @@ module.exports.changeMultiTask = async (req, res) => {
     try {
         const { ids, key, value } = req.body;
 
-        if (key != 'status') {
-            res.json({
-                code: 404,
-                message: 'Not Found!',
-            });
-            return;
-        }
-        await taskModel.updateMany(
-            {
-                _id: { $in: ids },
-            },
-            {
-                [key]: value,
-            }
-        );
+        switch (key) {
+            case 'status':
+                await taskModel.updateMany(
+                    {
+                        _id: { $in: ids },
+                    },
+                    {
+                        [key]: value,
+                    }
+                );
 
-        res.json({
-            code: 200,
-            message: 'Success',
-        });
+                res.json({
+                    code: 200,
+                    message: 'Success',
+                });
+                break;
+
+            case 'delete':
+                await taskModel.updateMany(
+                    {
+                        _id: { $in: ids },
+                    },
+                    {
+                        deleted: true,
+                        deletedAt: new Date(),
+                    }
+                );
+
+                res.json({
+                    code: 200,
+                    message: 'Success',
+                });
+                break;
+
+            default:
+                res.json({
+                    code: 404,
+                    message: 'Not Found!',
+                });
+                break;
+        }
     } catch (error) {
         res.json({
             code: 404,
@@ -155,6 +176,33 @@ module.exports.editTask = async (req, res) => {
                 _id: id,
             },
             data
+        );
+
+        res.json({
+            code: 200,
+            message: 'Success',
+        });
+    } catch (error) {
+        res.json({
+            code: 404,
+            message: 'Not Found!',
+        });
+    }
+};
+
+// [DELETE] /api/v1/task/delete/:idTask
+module.exports.deleteTask = async (req, res) => {
+    try {
+        const id = req.params.idTask;
+
+        await taskModel.updateOne(
+            {
+                _id: id,
+            },
+            {
+                deleted: true,
+                deletedAt: new Date(),
+            }
         );
 
         res.json({
