@@ -8,7 +8,10 @@ module.exports.getAllTasks = async (req, res) => {
             deleted: false,
         };
 
-        const sort = {};
+        const sort = {
+            key: 'title',
+            value: 'asc',
+        };
 
         const objectPagination = {
             currentPage: 1,
@@ -20,7 +23,8 @@ module.exports.getAllTasks = async (req, res) => {
         }
 
         if (req.query.sortKey && req.query.sortValue) {
-            sort[req.query.sortKey] = req.query.sortValue;
+            sort.key = req.query.sortKey;
+            sort.value = req.query.sortValue;
         }
 
         const countTask = await taskModel.countDocuments({
@@ -31,7 +35,9 @@ module.exports.getAllTasks = async (req, res) => {
 
         const tasks = await taskModel
             .find(find)
-            .sort(sort)
+            .sort({
+                [sort.key]: sort.value,
+            })
             .limit(pagination.limitRecord)
             .skip(pagination.skip);
 
