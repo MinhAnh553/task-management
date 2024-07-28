@@ -124,3 +124,22 @@ module.exports.changeMultiTask = async (req, res) => {
         });
     }
 };
+
+// [POST] /api/v1/task/create
+module.exports.createTask = async (req, res) => {
+    try {
+        const task = new taskModel(req.body);
+        const data = await task.save();
+
+        res.json({
+            code: 200,
+            message: 'Success',
+            data: data,
+        });
+    } catch (error) {
+        res.json({
+            code: 404,
+            message: 'Not Found!',
+        });
+    }
+};
