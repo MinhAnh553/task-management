@@ -91,3 +91,36 @@ module.exports.changeStatusTask = async (req, res) => {
         });
     }
 };
+
+// [PATCH] /api/v1/task/change-multi
+module.exports.changeMultiTask = async (req, res) => {
+    try {
+        const { ids, key, value } = req.body;
+
+        if (key != 'status') {
+            res.json({
+                code: 404,
+                message: 'Not Found!',
+            });
+            return;
+        }
+        await taskModel.updateMany(
+            {
+                _id: { $in: ids },
+            },
+            {
+                [key]: value,
+            }
+        );
+
+        res.json({
+            code: 200,
+            message: 'Success',
+        });
+    } catch (error) {
+        res.json({
+            code: 404,
+            message: 'Not Found!',
+        });
+    }
+};

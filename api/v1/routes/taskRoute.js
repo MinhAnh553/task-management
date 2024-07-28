@@ -9,4 +9,6 @@ Router.route('/detail/:idTask').get(taskController.getTaskById);
 
 Router.route('/change-status/:idTask').patch(taskController.changeStatusTask);
 
+Router.route('/change-multi').patch(taskController.changeMultiTask);
+
 module.exports = Router;
