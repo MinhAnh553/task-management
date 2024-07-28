@@ -13,4 +13,6 @@ Router.route('/change-multi').patch(taskController.changeMultiTask);
 
 Router.route('/create').post(taskController.createTask);
 
+Router.route('/edit/:idTask').patch(taskController.editTask);
+
 module.exports = Router;

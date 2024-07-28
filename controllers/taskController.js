@@ -143,3 +143,28 @@ module.exports.createTask = async (req, res) => {
         });
     }
 };
+
+// [PATCH] /api/v1/task/edit/:idTask
+module.exports.editTask = async (req, res) => {
+    try {
+        const id = req.params.idTask;
+        const data = req.body;
+
+        await taskModel.updateOne(
+            {
+                _id: id,
+            },
+            data
+        );
+
+        res.json({
+            code: 200,
+            message: 'Success',
+        });
+    } catch (error) {
+        res.json({
+            code: 404,
+            message: 'Not Found!',
+        });
+    }
+};
