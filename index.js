@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const database = require('./config/database');
 const APIs_V1 = require('./api/v1/routes/indexRoute');
@@ -11,6 +12,9 @@ const port = process.env.PORT;
 
 // parse application/json
 app.use(bodyParser.json());
+
+// cors
+app.use(cors());
 
 // Database
 database.connect();
