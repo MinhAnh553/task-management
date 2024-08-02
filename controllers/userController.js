@@ -160,3 +160,20 @@ module.exports.refreshToken = async (req, res) => {
         });
     }
 };
+
+module.exports.listUser = async (req, res) => {
+    try {
+        const users = await userModel
+            .find({
+                deleted: false,
+            })
+            .select('-password -token ');
+
+        res.status(StatusCodes.OK).json({
+            message: 'Thành công',
+            listUser: users,
+        });
+    } catch (error) {
+        res.status(StatusCodes.NOT_FOUND);
+    }
+};
