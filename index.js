@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 
 const database = require('./config/database');
@@ -12,6 +13,9 @@ const port = process.env.PORT;
 
 // parse application/json
 app.use(bodyParser.json());
+
+// cookie
+app.use(cookieParser());
 
 // cors
 app.use(cors());
