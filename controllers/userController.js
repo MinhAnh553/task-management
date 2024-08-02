@@ -1,23 +1,16 @@
-const md5 = require('md5');
 const { StatusCodes } = require('http-status-codes');
 const ms = require('ms');
 
-const userModel = require('../models/userModel');
 const JwtProvider = require('../providers/JwtProvider');
+const userService = require('../services/userService');
 
 module.exports.register = async (req, res) => {
     try {
         const data = req.body;
-        const emailExits = await userModel.findOne({
-            email: data.email,
-            deleted: false,
-        });
+        const emailExits = await userService.getUserByEmail(data.email);
 
         if (!emailExits) {
-            data.password = md5(data.password);
-
-            const user = new userModel(data);
-            await user.save();
+            const user = await userService.createNew(data);
 
             // Jwt
             const userInfo = {
@@ -71,13 +64,7 @@ module.exports.register = async (req, res) => {
 
 module.exports.login = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await userModel.findOne({
-            email: email,
-            password: md5(password),
-            status: 'active',
-            deleted: false,
-        });
+        const user = await userService.login(req.body);
 
         if (!user) {
             res.status(StatusCodes.FORBIDDEN).json({
@@ -163,11 +150,7 @@ module.exports.refreshToken = async (req, res) => {
 
 module.exports.listUser = async (req, res) => {
     try {
-        const users = await userModel
-            .find({
-                deleted: false,
-            })
-            .select('-password -token ');
+        const users = await userService.getAllUser();
 
         res.status(StatusCodes.OK).json({
             message: 'Thành công',

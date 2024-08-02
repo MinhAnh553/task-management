@@ -1,54 +1,21 @@
-const taskModel = require('../models/taskModel');
-const paginationHelper = require('../helpers/paginationHelper');
+const { StatusCodes } = require('http-status-codes');
+
 const searchHelper = require('../helpers/searchHelper');
+const taskService = require('../services/taskService');
 
 // [GET] /api/v1/task
-module.exports.getAllTasks = async (req, res) => {
+module.exports.getAllTask = async (req, res) => {
     try {
-        const find = {
-            deleted: false,
-        };
+        const tasks = await taskService.getAllTask(req);
 
-        const sort = {
-            key: 'title',
-            value: 'asc',
-        };
-
-        const objectPagination = {
-            currentPage: 1,
-            limitRecord: 2,
-        };
-
-        if (req.query.status) {
-            find.status = req.query.status;
-        }
-
-        if (req.query.keyword) {
-            find.title = searchHelper(req.query);
-        }
-
-        if (req.query.sortKey && req.query.sortValue) {
-            sort.key = req.query.sortKey;
-            sort.value = req.query.sortValue;
-        }
-
-        const countTask = await taskModel.countDocuments({
-            deleted: false,
+        res.status(StatusCodes.OK).json({
+            message: 'Success!',
+            tasks,
         });
-
-        const pagination = paginationHelper(objectPagination, req, countTask);
-
-        const tasks = await taskModel
-            .find(find)
-            .sort({
-                [sort.key]: sort.value,
-            })
-            .limit(pagination.limitRecord)
-            .skip(pagination.skip);
-
-        res.json(tasks);
     } catch (error) {
-        res.json('Không tìm thấy!');
+        res.status(StatusCodes.NOT_FOUND).json({
+            message: 'Không tìm thấy!',
+        });
     }
 };
 
@@ -56,13 +23,16 @@ module.exports.getAllTasks = async (req, res) => {
 module.exports.getTaskById = async (req, res) => {
     try {
         const idTask = req.params.idTask;
-        const task = await taskModel.find({
-            _id: idTask,
-            deleted: false,
+        const task = await taskService.getTaskById(idTask);
+
+        res.status(StatusCodes.OK).json({
+            message: 'Success!',
+            task,
         });
-        res.json(task);
     } catch (error) {
-        res.json('Không tìm thấy!');
+        res.status(StatusCodes.NOT_FOUND).json({
+            message: 'Không tìm thấy!',
+        });
     }
 };
 
@@ -71,23 +41,18 @@ module.exports.changeStatusTask = async (req, res) => {
     try {
         const idTask = req.params.idTask;
 
-        await taskModel.updateOne(
-            {
-                _id: idTask,
-            },
-            {
-                status: req.body.status,
-            }
-        );
+        req.body = {
+            status: req.body.status,
+        };
 
-        res.json({
-            code: 200,
-            message: 'Success',
+        await taskService.updateOneById(idTask, req.body);
+
+        res.status(StatusCodes.OK).json({
+            message: 'Success!',
         });
     } catch (error) {
-        res.json({
-            code: 404,
-            message: 'Not Found!',
+        res.status(StatusCodes.NOT_FOUND).json({
+            message: 'Không tìm thấy!',
         });
     }
 };
@@ -99,49 +64,30 @@ module.exports.changeMultiTask = async (req, res) => {
 
         switch (key) {
             case 'status':
-                await taskModel.updateMany(
-                    {
-                        _id: { $in: ids },
-                    },
-                    {
-                        [key]: value,
-                    }
-                );
+                await taskService.updateManyByIds(ids, key, value);
 
-                res.json({
-                    code: 200,
-                    message: 'Success',
+                res.status(StatusCodes.OK).json({
+                    message: 'Success!',
                 });
                 break;
 
             case 'delete':
-                await taskModel.updateMany(
-                    {
-                        _id: { $in: ids },
-                    },
-                    {
-                        deleted: true,
-                        deletedAt: new Date(),
-                    }
-                );
+                await taskService.deleteManyByIds(ids);
 
-                res.json({
-                    code: 200,
-                    message: 'Success',
+                res.status(StatusCodes.OK).json({
+                    message: 'Success!',
                 });
                 break;
 
             default:
-                res.json({
-                    code: 404,
-                    message: 'Not Found!',
+                res.status(StatusCodes.NOT_FOUND).json({
+                    message: 'Không tìm thấy!',
                 });
                 break;
         }
     } catch (error) {
-        res.json({
-            code: 404,
-            message: 'Not Found!',
+        res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+            message: 'Không tìm thấy!',
         });
     }
 };
@@ -149,19 +95,15 @@ module.exports.changeMultiTask = async (req, res) => {
 // [POST] /api/v1/task/create
 module.exports.createTask = async (req, res) => {
     try {
-        req.body.createdBy = req.jwtDecoded.id;
-        const task = new taskModel(req.body);
-        const data = await task.save();
+        const data = await taskService.createNew(req);
 
-        res.json({
-            code: 200,
+        res.status(StatusCodes.OK).json({
             message: 'Success',
             data: data,
         });
     } catch (error) {
-        res.json({
-            code: 404,
-            message: 'Not Found!',
+        res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+            message: 'Không tìm thấy!',
         });
     }
 };
@@ -172,21 +114,15 @@ module.exports.editTask = async (req, res) => {
         const id = req.params.idTask;
         const data = req.body;
 
-        await taskModel.updateOne(
-            {
-                _id: id,
-            },
-            data
-        );
+        const task = await taskService.editTask(id, data);
 
-        res.json({
-            code: 200,
+        res.status(StatusCodes.OK).json({
             message: 'Success',
+            task: task,
         });
     } catch (error) {
-        res.json({
-            code: 404,
-            message: 'Not Found!',
+        res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+            message: 'Không tìm thấy!',
         });
     }
 };
@@ -195,25 +131,14 @@ module.exports.editTask = async (req, res) => {
 module.exports.deleteTask = async (req, res) => {
     try {
         const id = req.params.idTask;
+        const data = await taskService.deleteTask(id);
 
-        await taskModel.updateOne(
-            {
-                _id: id,
-            },
-            {
-                deleted: true,
-                deletedAt: new Date(),
-            }
-        );
-
-        res.json({
-            code: 200,
+        res.status(StatusCodes.OK).json({
             message: 'Success',
         });
     } catch (error) {
-        res.json({
-            code: 404,
-            message: 'Not Found!',
+        res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
+            message: 'Không tìm thấy!',
         });
     }
 };
