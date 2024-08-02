@@ -149,6 +149,7 @@ module.exports.changeMultiTask = async (req, res) => {
 // [POST] /api/v1/task/create
 module.exports.createTask = async (req, res) => {
     try {
+        req.body.createdBy = req.jwtDecoded.id;
         const task = new taskModel(req.body);
         const data = await task.save();
 
