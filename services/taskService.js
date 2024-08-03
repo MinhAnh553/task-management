@@ -30,6 +30,10 @@ module.exports.getTaskById = async (id) => {
 module.exports.getAllTask = async (req) => {
     try {
         const find = {
+            $or: [
+                { createdBy: req.jwtDecoded.id },
+                { listUser: req.jwtDecoded.id },
+            ],
             deleted: false,
         };
 
